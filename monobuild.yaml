@@ -1,23 +1,27 @@
-dependencies:
+dep_source_dirs:
   - pkg
   - internal
   - vendor
 targets:
-  - dir: cmd/server
+  - path: cmd/server
+    watch_pattern:
+    - monobuild.yaml
     build_command:
       dir: ./
       command: go
       args:
         - build
-        - ./cmd/server/
         - -o
         - ./bin/server
-  - dir: cmd/worker
+        - ./cmd/server/
+  - path: cmd/worker
+    watch_pattern:
+    - monobuild.yaml
     build_command:
       dir: ./
       command: go
       args:
         - build
-        - ./cmd/worker/
         - -o
         - ./bin/worker
+        - ./cmd/worker/
