@@ -10,6 +10,31 @@ jobs:
         name: mono build
         command: |
           env | grep CIRCLE
-          echo compare url = $COMPARE_URL
-          COMMIT_RANGE=$(echo "${CIRCLE_COMPARE_URL}" | cut -d/ -f7)
-          echo commit range = $COMMIT_RANGE
+
+          if [[ -n ${CIRCLE_PULL_REQUESTS} ]];
+          then
+            echo "This build is a Pull Request"
+            CIRCLE_PR_NUMBER=$(echo $CIRCLE_PULL_REQUESTS | awk -F/ '{print $NF}')
+            curl -L "https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64" -o jq
+            chmod +x jq
+            if [[ ! -n ${GITHUB_TOKEN} ]];
+            then
+              echo "Please define the GITHUB_TOKEN var"
+              exit 1
+            fi
+            url="https://api.github.com/repos/bzon/monobuild-example/pulls/$CIRCLE_PR_NUMBER?access_token=$GITHUB_TOKEN"
+            TARGET_BRANCH=$(curl "$url" | ./jq '.base.ref' | tr -d '"')
+            echo "Build compare URL https://github.com/bzon/monobuild-example/compare/${TARGET_BRANCH}...${CIRCLE_SHA1}"
+            echo "Git diff from branch origin/$TARGET_BRANCH...$CIRCLE_SHA1"
+            git diff --name-only origin/${TARGET_BRANCH}...${CIRCLE_SHA1}
+            echo "Git diff from branch origin/$TARGET_BRANCH"
+            git diff --name-only origin/${TARGET_BRANCH}
+            exit 0
+          fi
+
+          echo "This build is not a pull request"
+          LAST_SUCCESSFUL_BUILD_COMMIT=$(curl -s "https://circleci.com/api/v1.1/project/github/bzon/monobuild-example/tree/${CIRCLE_BRANCH}?circle-token=${CIRCLE_TOKEN}&limit=1&filter=completed" |  jq -r '.[0]["vcs_revision"]')
+          echo "Build compare URL https://github.com/bzon/monobuild-example/compare/${CIRCLE_SHA1}...${LAST_SUCCESSFUL_BUILD_COMMIT}"
+          echo "Git diff from last commit $LAST_SUCCESSFUL_BUILD_COMMIT"
+          git diff --name-only ${LAST_SUCCESSFUL_BUILD_COMMIT}
+
