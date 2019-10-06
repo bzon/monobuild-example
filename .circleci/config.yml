@@ -1,0 +1,15 @@
+version: 2.1
+jobs:
+  build:
+    working_directory: /go/src/github.com/bzon/monobuild-example
+    docker:
+    - image: golang:1.13.1
+    steps:
+    - checkout
+    - run:
+        name: mono build
+        command: |
+          env | grep CIRCLE
+          echo compare url = $COMPARE_URL
+          COMMIT_RANGE=$(echo "${CIRCLE_COMPARE_URL}" | cut -d/ -f7)
+          echo commit range = $COMMIT_RANGE
