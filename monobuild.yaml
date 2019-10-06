@@ -1,0 +1,23 @@
+dependencies:
+  - pkg
+  - internal
+  - vendor
+targets:
+  - dir: cmd/server
+    build_command:
+      dir: ./
+      command: go
+      args:
+        - build
+        - ./cmd/server/
+        - -o
+        - ./bin/server
+  - dir: cmd/worker
+    build_command:
+      dir: ./
+      command: go
+      args:
+        - build
+        - ./cmd/worker/
+        - -o
+        - ./bin/worker
